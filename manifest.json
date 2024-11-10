@@ -1,0 +1,19 @@
+{
+  "domain": "powerbox",
+  "name": "Powerbox WS 75",
+  "codeowners": [
+    "@markusmauch"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/powerbox_ws_75",
+  "homekit": {},
+  "iot_class": "local_polling",
+  "requirements": ["pymodbus==3.7.4"],
+  "ssdp": [],
+  "zeroconf": [],
+  "assets": {
+    "icon": "images/icon.png",
+    "logo": "images/logo.png"
+  }
+}
