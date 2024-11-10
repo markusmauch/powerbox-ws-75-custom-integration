@@ -1,20 +1,14 @@
-import logging
-from datetime import timedelta
+from .const import DOMAIN
+from .modbus_data_coordinator import ModbusDataCoordinator
 from homeassistant.components.binary_sensor import BinarySensorEntity
-from homeassistant.components.powerbox.modbus_data_coordinator import ModbusDataCoordinator
-from homeassistant.components.powerbox.select import OperatingModeSelect
-from homeassistant.components.sensor import ConfigType, SensorEntity
+from homeassistant.components.sensor import ConfigType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback, DiscoveryInfoType
+from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.event import async_track_time_interval
-from homeassistant.helpers.entity import DeviceInfo, Entity
-from homeassistant.const import CONF_NAME
-from pymodbus.client.tcp import ModbusTcpClient as ModbusClient
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, CoordinatorEntity
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
-from .const import DOMAIN, MODBUS_REGISTERS
-from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:

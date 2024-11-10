@@ -9,6 +9,7 @@ DATA_SCHEMA = vol.Schema({
     vol.Required(CONF_UNIT_ID, default=10): int,
 })
 
+@config_entries.HANDLERS.register(DOMAIN)
 class PowerboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Modbus Integration."""
 

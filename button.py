@@ -1,12 +1,11 @@
+from .const import DOMAIN
+from .modbus_data_coordinator import ModbusDataCoordinator
 from homeassistant.components.button import ButtonEntity
-from homeassistant.components.powerbox.modbus_data_coordinator import ModbusDataCoordinator
-from homeassistant.components.select import SelectEntity
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from .const import DOMAIN, MODBUS_REGISTERS
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     device: dr.DeviceEntry = hass.data[DOMAIN][entry.entry_id].get("device")
