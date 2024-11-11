@@ -74,7 +74,7 @@ class PurgeVentilationBinarySensor(PowerboxBinarySensor):
 
     @property
     def name(self):
-        return "Einschlaffunktion"
+        return "Stoßlüftung"
 
     @property
     def id(self):

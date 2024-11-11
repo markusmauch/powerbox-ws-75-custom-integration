@@ -7,7 +7,7 @@ from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
-from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY
+from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, DEVICE_CLASS_TIMESTAMP, TIME_SECONDS
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
@@ -17,6 +17,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         RoomTemperatureSensor(coordinator, device),
         OutsideTemperatureSensor(coordinator, device),
         AirHumiditySensor(coordinator, device),
+        LastUpdatedSensor(coordinator, device),
     ]
     async_add_entities(sensors, update_before_add=False)
 
@@ -120,3 +121,32 @@ class AirHumiditySensor(PowerboxSensor):
     @property
     def device_class(self):
         return DEVICE_CLASS_HUMIDITY
+
+
+class LastUpdatedSensor(PowerboxSensor):
+    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        super().__init__(coordinator, device)
+
+    @property
+    def name(self):
+        return "Letzte Aktualisierung"
+
+    @property
+    def id(self):
+        return "last_updated"
+
+    @property
+    def icon(self):
+        return "mdi:update"
+
+    @property
+    def device_class(self):
+        return DEVICE_CLASS_TIMESTAMP
+
+    @property
+    def unit_of_measurement(self):
+        return TIME_SECONDS
+
+    @property
+    def state(self):
+        return self.coordinator.last_updated

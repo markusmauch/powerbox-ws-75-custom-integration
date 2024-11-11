@@ -42,8 +42,6 @@ class OptionsFlow(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        data_schema = vol.Schema({
-            vol.Optional(CONF_PORT, default=self.config_entry.data.get(CONF_PORT, 502)): int,
-        })
+        data_schema = vol.Schema(DATA_SCHEMA)
 
         return self.async_show_form(step_id="init", data_schema=data_schema)
