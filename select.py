@@ -1,5 +1,5 @@
-from .const import DOMAIN
-from .modbus_data_coordinator import ModbusDataCoordinator
+from .const import DOMAIN, get_localized_name
+from .modbus_data_coordinator import ModbusDataCoordinator, ModbusPollingRegister
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
@@ -17,11 +17,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async_add_entities(sensors, update_before_add=False)
 
 
-class PowerboxSelect(CoordinatorEntity, SelectEntity):
+class PowerboxSelect(CoordinatorEntity, SelectEntity, ModbusPollingRegister):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
-        # self._attr_options = self.options
-        # self._attr_current_option = self.options[0]
         self._current_value = 0  # Internal integer state
         super().__init__(coordinator)
 
@@ -54,35 +52,32 @@ class PowerboxSelect(CoordinatorEntity, SelectEntity):
         for key, value in self.options_map.items():
             if value == option:
                 self._current_value = key
-                self.coordinator.write(self.id, key)
+                self.coordinator.write(self.address, key)
                 self.schedule_update_ha_state()
                 return
         raise ValueError(f"Option '{option}' is not a valid choice.")
 
     async def async_added_to_hass(self):
-        """When entity is added to hass, set up the data update listener."""
-        # Listen to coordinator updates and call the callback on new data
         self.coordinator.async_add_listener(self._update_from_coordinator_data)
-        # Call the update once in case the coordinator has data already
         self._update_from_coordinator_data()
 
     def _update_from_coordinator_data(self):
-        """Callback triggered by DataUpdateCoordinator."""
         data = self.coordinator.data
-        if data is not None:
-            new_value = self.coordinator.data.get(self.id)
+        if data is not None and self.address in self.coordinator.data.keys():
+            new_value = self.coordinator.data[self.address]
             keys = list(self.options_map.keys())
             if new_value in keys and new_value != self._current_value:
                 self._current_value = new_value
                 self.async_write_ha_state()
 
     async def async_update(self):
-        new_value = self.coordinator.data.get(self.id)
+        new_value = self.coordinator.data["address"]
         print(new_value)
 
 
 class OperatingModeSelect(PowerboxSelect):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property
@@ -96,20 +91,25 @@ class OperatingModeSelect(PowerboxSelect):
         }
 
     @property
-    def name(self):
-        return "Betriebsart"
-
-    @property
     def id(self):
         return "operating_mode"
+
+    @property
+    def name(self):
+        return "Betriebsart"
 
     @property
     def icon(self):
         return "mdi:power-settings"
 
+    @property
+    def address(self) -> int:
+        return 550
+
 
 class VentilationLevelModeSelect(PowerboxSelect):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property
@@ -122,13 +122,17 @@ class VentilationLevelModeSelect(PowerboxSelect):
         }
 
     @property
-    def name(self):
-        return "Luftstufe"
-
-    @property
     def id(self):
         return "ventilation_level"
 
     @property
+    def name(self):
+        return "Lüftungsstufe"
+
+    @property
     def icon(self):
         return "mdi:fan"
+
+    @property
+    def address(self) -> int:
+        return 554

@@ -1,9 +1,31 @@
 import logging
+import datetime
 from homeassistant.util import dt
 from datetime import timedelta
-from .const import MODBUS_REGISTERS
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pymodbus.client.tcp import ModbusTcpClient as ModbusClient
+from typing import List
+
+class ModbusPollingRegister():
+    @property
+    def unique_id(self) -> str:
+        return None
+
+    @property
+    def address(self) -> int:
+        return None
+
+    @property
+    def length(self) -> int:
+        return 1
+
+    @property
+    def scale(self) -> float:
+        return 1
+
+    @property
+    def precision(self) -> float:
+        return 1
 
 class ModbusDataCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, modbus_client: ModbusClient):
@@ -14,54 +36,50 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
             update_interval=timedelta(seconds=2),
         )
         self._modbus_client = modbus_client
-
         self._data = {}
-        self._current_register = -1
-        self._update_list = {}
+        self._write_cache = {}
+        self._polling_registers: List[ModbusPollingRegister] = []
+        self._current_polling_register_index = -1
         self._busy = False
-        self._last_updated: str = None
+        self._last_updated: datetime = None
 
     @property
     def last_updated(self):
         return self._last_updated
 
-    def write(self, unique_id: str, value: int):
-        self._update_list[unique_id] = value
+    def add_polling_register(self, polling_register: ModbusPollingRegister):
+        self._polling_registers.append( polling_register )
+
+    def write(self, address: int, value: int):
+        self._write_cache[address] = value
 
     async def _async_update_data(self):
         if self._busy == False:
             self._busy = True
-            if self._update_list.__len__() != 0:
-                (unique_id, value) = self._update_list.popitem()
-                address = self._address_by_uniqe_id(unique_id)
+            if self._write_cache.__len__() != 0:
+                (address, value) = self._write_cache.popitem()
                 try:
                     self._modbus_client.write_registers(address, value)
-                    self._data[unique_id] = value
-                    self._last_updated = dt.now().isoformat()
+                    self._data[address] = value
+                    self._last_updated = dt.now()
                 except Exception as e:
-                    self._data[unique_id] = None
-                    self.logger.error(f"Error writing '{unique_id}', register {address}.")
+                    self._data[address] = None
+                    self.logger.error(f"Error writing value '{value}' to register {address}.")
             else:
-                modbus_register = self._next_register()
-                address = modbus_register.get("address")
-                unique_id = modbus_register.get("unique_id")
-                length = modbus_register.get("length")
-                scale = modbus_register.get("scale", 1)
+                polling_register = self._next_polling_register()
+                address = polling_register.address
+                length = polling_register.length
                 try:
-                    value = self._modbus_client.read_holding_registers(address, length).registers[length - 1] * scale
-                    self._data[unique_id] = value
-                    self._last_updated = dt.now().isoformat()
+                    registers = self._modbus_client.read_holding_registers(address, length).registers
+                    for i in range(0, length):
+                        self._data[address + i] = registers[i]
+                    self._last_updated = dt.now()
                 except Exception as e:
-                    self._data[unique_id] = None
-                    self.logger.error(f"Error reading '{unique_id}', register {address}.")
+                    self._data[address] = None
+                    self.logger.error(f"Error reading register {address}.")
             self._busy = False
         return self._data.copy()
 
-    def _next_register(self):
-        self._current_register = (self._current_register + 1) % MODBUS_REGISTERS.__len__()
-        return MODBUS_REGISTERS[self._current_register]
-
-    def _address_by_uniqe_id(self, unique_id: str) -> int:
-        for modbus_register in MODBUS_REGISTERS:
-            if modbus_register.get("unique_id") == unique_id:
-                return modbus_register.get("address")
+    def _next_polling_register(self):
+        self._current_polling_register_index = (self._current_polling_register_index + 1) % self._polling_registers.__len__()
+        return self._polling_registers[self._current_polling_register_index]

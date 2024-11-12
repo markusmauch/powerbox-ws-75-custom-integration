@@ -1,6 +1,8 @@
-from .const import DOMAIN
-from .modbus_data_coordinator import ModbusDataCoordinator
-from homeassistant.components.binary_sensor import BinarySensorEntity
+from .const import DOMAIN, get_localized_name
+from .modbus_data_coordinator import ModbusDataCoordinator, ModbusPollingRegister
+from datetime import timedelta
+from homeassistant.util import dt
+from homeassistant.components.binary_sensor import DEVICE_CLASS_CONNECTIVITY, DEVICE_CLASS_RUNNING, BinarySensorEntity
 from homeassistant.components.sensor import ConfigType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -17,11 +19,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     sensors = [
         SleepFunctionBinarySensor(coordinator, device),
         PurgeVentilationBinarySensor(coordinator, device),
+        IsAliveBinarySensor(coordinator, device),
     ]
     async_add_entities(sensors, update_before_add=False)
 
 
-class PowerboxBinarySensor(CoordinatorEntity, BinarySensorEntity):
+class PowerboxBinarySensor(CoordinatorEntity, BinarySensorEntity, ModbusPollingRegister):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
         super().__init__(coordinator)
@@ -44,42 +47,81 @@ class PowerboxBinarySensor(CoordinatorEntity, BinarySensorEntity):
 
     @property
     def state(self):
-        if self.coordinator.data is None:
-            return None
-        else:
-            value = self.coordinator.data.get(self.id)
+        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+            value = self.coordinator.data[self.address]
             return "on" if value == 1 else "off"
+        else:
+            return None
 
 
 class SleepFunctionBinarySensor(PowerboxBinarySensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
-
-    @property
-    def name(self):
-        return "Einschlaffunktion"
 
     @property
     def id(self):
         return "sleep_function"
 
     @property
+    def name(self):
+        return "Einschlaffunktion"
+
+    @property
     def icon(self):
         return "mdi:bed-clock"
+
+    @property
+    def address(self) -> int:
+        return 559
 
 
 class PurgeVentilationBinarySensor(PowerboxBinarySensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
-
-    @property
-    def name(self):
-        return "Stoßlüftung"
 
     @property
     def id(self):
         return "purge_ventilation"
 
     @property
+    def name(self):
+        return "Stoßlüftung"
+
+    @property
     def icon(self):
         return "mdi:weather-windy"
+
+    @property
+    def address(self) -> int:
+        return 551
+
+
+class IsAliveBinarySensor(PowerboxBinarySensor):
+    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        super().__init__(coordinator, device)
+
+    @property
+    def id(self):
+        return "last_updated"
+
+    @property
+    def name(self):
+        return "Status"
+
+    @property
+    def icon(self):
+        return "mdi:play-network"
+
+    @property
+    def device_class(self):
+        return DEVICE_CLASS_RUNNING
+
+    @property
+    def state(self):
+        if self.coordinator.last_updated == None:
+            return "off"
+        else:
+            time_difference = abs(self.coordinator.last_updated - dt.now())
+            return "off" if time_difference > timedelta(minutes=5) else "on"

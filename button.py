@@ -1,5 +1,5 @@
-from .const import DOMAIN
-from .modbus_data_coordinator import ModbusDataCoordinator
+from .const import DOMAIN, get_localized_name
+from .modbus_data_coordinator import ModbusDataCoordinator, ModbusPollingRegister
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
@@ -16,7 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     ]
     async_add_entities(sensors, update_before_add=False)
 
-class PowerboxButton(CoordinatorEntity, ButtonEntity):
+class PowerboxButton(CoordinatorEntity, ButtonEntity, ModbusPollingRegister):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
         super().__init__(coordinator)
@@ -43,19 +43,23 @@ class SleepFunctionButton(PowerboxButton):
         super().__init__(coordinator, device)
 
     @property
-    def name(self):
-        return "Einschlaffunktion"
-
-    @property
     def id(self):
         return "sleep_function"
+
+    @property
+    def name(self):
+        return "Einschlaffunktion"
 
     @property
     def icon(self):
         return "mdi:bed-clock"
 
+    @property
+    def address(self) -> int:
+        return 559
+
     async def async_press(self):
-        self.coordinator.write(self.id, 1)
+        self.coordinator.write(self.address, 1)
 
 
 class PurgeVentilationButton(PowerboxButton):
@@ -63,16 +67,20 @@ class PurgeVentilationButton(PowerboxButton):
         super().__init__(coordinator, device)
 
     @property
-    def name(self):
-        return "Stoßlüftung"
-
-    @property
     def id(self):
         return "purge_ventilation"
+
+    @property
+    def name(self):
+        return "Stoßlüftung"
 
     @property
     def icon(self):
         return "mdi:weather-windy"
 
+    @property
+    def address(self) -> int:
+        return 551
+
     async def async_press(self):
-        self.coordinator.write(self.id, 1)
+        self.coordinator.write(self.address, 1)

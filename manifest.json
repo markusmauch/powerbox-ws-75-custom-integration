@@ -16,5 +16,11 @@
   "assets": {
     "icon": "images/icon.png",
     "logo": "images/logo.png"
-  }
+  },
+  "resources": [
+        {
+            "type": "module",
+            "url": "/local/community/powerbox/branding/logo.png"
+        }
+    ]
 }
