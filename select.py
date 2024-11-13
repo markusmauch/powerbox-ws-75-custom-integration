@@ -1,5 +1,5 @@
 from .const import DOMAIN, get_localized_name
-from .modbus_data_coordinator import ModbusDataCoordinator, ModbusPollingRegister
+from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
 from homeassistant.components.select import SelectEntity
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity import DeviceInfo
@@ -17,7 +17,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async_add_entities(sensors, update_before_add=False)
 
 
-class PowerboxSelect(CoordinatorEntity, SelectEntity, ModbusPollingRegister):
+class PowerboxSelect(CoordinatorEntity, SelectEntity, ModbusInfo):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
         self._current_value = 0  # Internal integer state
@@ -77,7 +77,6 @@ class PowerboxSelect(CoordinatorEntity, SelectEntity, ModbusPollingRegister):
 
 class OperatingModeSelect(PowerboxSelect):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property
@@ -109,7 +108,6 @@ class OperatingModeSelect(PowerboxSelect):
 
 class VentilationLevelModeSelect(PowerboxSelect):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property

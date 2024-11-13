@@ -1,5 +1,5 @@
 from .const import DOMAIN, get_localized_name
-from .modbus_data_coordinator import ModbusDataCoordinator, ModbusPollingRegister
+from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
 from homeassistant.components.sensor import ConfigType, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -24,7 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     async_add_entities(sensors, update_before_add=False)
 
 
-class PowerboxSensor(CoordinatorEntity, SensorEntity, ModbusPollingRegister):
+class PowerboxSensor(CoordinatorEntity, SensorEntity, ModbusInfo):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
         super().__init__(coordinator)
@@ -48,14 +48,14 @@ class PowerboxSensor(CoordinatorEntity, SensorEntity, ModbusPollingRegister):
     @property
     def state(self):
         if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
-            return self.coordinator.data[self.address] * self.scale
+            value = self.coordinator.data[self.address]
+            return value * self.scale if value is not None else None
         else:
             return None
 
 
 class RoomTemperatureSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property
@@ -89,7 +89,6 @@ class RoomTemperatureSensor(PowerboxSensor):
 
 class OutsideTemperatureSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property
@@ -123,7 +122,6 @@ class OutsideTemperatureSensor(PowerboxSensor):
 
 class AirHumiditySensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property
@@ -153,7 +151,6 @@ class AirHumiditySensor(PowerboxSensor):
 
 class VolumeFlowSupplySensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property
@@ -179,7 +176,6 @@ class VolumeFlowSupplySensor(PowerboxSensor):
 
 class VolumeFlowExhaustSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property
@@ -205,7 +201,6 @@ class VolumeFlowExhaustSensor(PowerboxSensor):
 
 class CurrentErrorSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        coordinator.add_polling_register(self)
         super().__init__(coordinator, device)
 
     @property

@@ -39,7 +39,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     await hass.config_entries.async_forward_entry_setup(entry, Platform.SENSOR)
     await hass.config_entries.async_forward_entry_setup(entry, Platform.BINARY_SENSOR)
     await hass.config_entries.async_forward_entry_setup(entry, Platform.SELECT)
-    await hass.config_entries.async_forward_entry_setup(entry, Platform.BUTTON)
+    await hass.config_entries.async_forward_entry_setup(entry, Platform.SWITCH)
 
     return True
 
@@ -49,7 +49,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     await hass.config_entries.async_forward_entry_unload(entry, Platform.SENSOR)
     await hass.config_entries.async_forward_entry_unload(entry, Platform.BINARY_SENSOR)
     await hass.config_entries.async_forward_entry_unload(entry, Platform.SELECT)
-    await hass.config_entries.async_forward_entry_unload(entry, Platform.BUTTON)
+    await hass.config_entries.async_forward_entry_unload(entry, Platform.SWITCH)
     client: ModbusClient = domain_data[entry.entry_id].get("client")
     client.close()  # Close the Modbus client connection
     domain_data.pop(entry.entry_id)

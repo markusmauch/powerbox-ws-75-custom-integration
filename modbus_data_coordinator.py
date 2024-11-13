@@ -6,7 +6,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pymodbus.client.tcp import ModbusTcpClient as ModbusClient
 from typing import List
 
-class ModbusPollingRegister():
+class ModbusInfo():
     @property
     def unique_id(self) -> str:
         return None
@@ -27,28 +27,47 @@ class ModbusPollingRegister():
     def precision(self) -> float:
         return 1
 
+class AddressBlock():
+    def __init__(self, address: int, length: int):
+        self._address = address
+        self._length = length
+
+    @property
+    def address(self) -> int:
+        return self._address
+
+    @property
+    def length(self) -> int:
+        return self._length
+
 class ModbusDataCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, modbus_client: ModbusClient):
         super().__init__(
             hass,
             logging.getLogger(__name__),
             name="Modbus Coordinator",
-            update_interval=timedelta(seconds=2),
+            update_interval=timedelta(seconds=4),
         )
         self._modbus_client = modbus_client
         self._data = {}
         self._write_cache = {}
-        self._polling_registers: List[ModbusPollingRegister] = []
-        self._current_polling_register_index = -1
+        self._current_address_block_index = -1
         self._busy = False
         self._last_updated: datetime = None
+        self._address_blocks: List[AddressBlock] = [
+            AddressBlock(401, 5),
+            AddressBlock(550, 2),
+            AddressBlock(553, 2),
+            AddressBlock(559, 1),
+            AddressBlock(650, 8),
+            AddressBlock(700, 1),
+            AddressBlock(703, 5),
+            AddressBlock(750, 3),
+        ]
 
     @property
     def last_updated(self):
         return self._last_updated
-
-    def add_polling_register(self, polling_register: ModbusPollingRegister):
-        self._polling_registers.append( polling_register )
 
     def write(self, address: int, value: int):
         self._write_cache[address] = value
@@ -66,9 +85,9 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
                     self._data[address] = None
                     self.logger.error(f"Error writing value '{value}' to register {address}.")
             else:
-                polling_register = self._next_polling_register()
-                address = polling_register.address
-                length = polling_register.length
+                address_block = self._next_address_block()
+                address = address_block.address
+                length = address_block.length
                 try:
                     registers = self._modbus_client.read_holding_registers(address, length).registers
                     for i in range(0, length):
@@ -80,6 +99,6 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
             self._busy = False
         return self._data.copy()
 
-    def _next_polling_register(self):
-        self._current_polling_register_index = (self._current_polling_register_index + 1) % self._polling_registers.__len__()
-        return self._polling_registers[self._current_polling_register_index]
+    def _next_address_block(self) -> AddressBlock:
+        self._current_address_block_index = (self._current_address_block_index + 1) % self._address_blocks.__len__()
+        return self._address_blocks[self._current_address_block_index]
