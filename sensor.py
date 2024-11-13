@@ -7,7 +7,7 @@ from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
-from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR
+from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR, TIME_DAYS
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
@@ -19,7 +19,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         AirHumiditySensor(coordinator, device),
         VolumeFlowSupplySensor(coordinator, device),
         VolumeFlowExhaustSensor(coordinator, device),
+        RemainingTimeDeviceFilterSensor(coordinator, device),
+        # RemainingTimeOutdoorFilterSensor(coordinator, device),
+        # RemainingTimeRoomFilterSensor(coordinator, device),
         CurrentErrorSensor(coordinator, device),
+        CurrentHintSensor(coordinator, device),
     ]
     async_add_entities(sensors, update_before_add=False)
 
@@ -198,20 +202,88 @@ class VolumeFlowExhaustSensor(PowerboxSensor):
     def address(self) -> int:
         return 654
 
+class RemainingTimeDeviceFilterSensor(PowerboxSensor):
+    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        super().__init__(coordinator, device)
+
+    @property
+    def id(self):
+        return "remaining_time_device_filter"
+
+    @property
+    def name(self):
+        return "Restlaufzeit Gerätefilter"
+
+    @property
+    def icon(self):
+        return "mdi:air-filter"
+
+    @property
+    def unit_of_measurement(self):
+        return TIME_DAYS
+
+    @property
+    def address(self) -> int:
+        return 655
+
+
+class RemainingTimeOutdoorFilterSensor(PowerboxSensor):
+    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        super().__init__(coordinator, device)
+
+    @property
+    def id(self):
+        return "remaining_time_outdoor_filter"
+
+    @property
+    def name(self):
+        return "Restlaufzeit Außenfilter"
+
+    @property
+    def icon(self):
+        return "mdi:filter-outline"
+
+    @property
+    def unit_of_measurement(self):
+        return TIME_DAYS
+
+    @property
+    def address(self) -> int:
+        return 656
+
+
+class RemainingTimeRoomFilterSensor(PowerboxSensor):
+    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        super().__init__(coordinator, device)
+
+    @property
+    def id(self):
+        return "remaining_time_room_filter"
+
+    @property
+    def name(self):
+        return "Restlaufzeit Raumfilter"
+
+    @property
+    def icon(self):
+        return "mdi:air-filter"
+
+    @property
+    def unit_of_measurement(self):
+        return TIME_DAYS
+
+    @property
+    def address(self) -> int:
+        return 657
+
 
 class CurrentErrorSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         super().__init__(coordinator, device)
 
     @property
-    def state(self):
-        error = 0
-        # error = self.coordinator.data.get(self.id)
-        return error
-
-    @property
     def id(self):
-        return "error"
+        return "current_error"
 
     @property
     def name(self):
@@ -224,6 +296,40 @@ class CurrentErrorSensor(PowerboxSensor):
     @property
     def address(self) -> int:
         return 401
+
+    @property
+    def length(self) -> int:
+        return 2
+
+    @property
+    def state(self):
+        if self.coordinator.data is not None and (self.address in self.coordinator.data.keys() and self.address + 1 in self.coordinator.data.keys()):
+            high_word = self.coordinator.data[self.address]
+            low_word = self.coordinator.data[self.address + 1]
+            return (high_word << 16) | low_word
+        else:
+            return None
+
+
+class CurrentHintSensor(PowerboxSensor):
+    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        super().__init__(coordinator, device)
+
+    @property
+    def id(self):
+        return "current_hint"
+
+    @property
+    def name(self):
+        return "Aktueller Hinweis"
+
+    @property
+    def icon(self):
+        return "mdi:message-text"
+
+    @property
+    def address(self) -> int:
+        return 403
 
     @property
     def length(self) -> int:

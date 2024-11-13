@@ -11,8 +11,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     device: dr.DeviceEntry = hass.data[DOMAIN][entry.entry_id].get("device")
     coordinator: ModbusDataCoordinator = hass.data[DOMAIN][entry.entry_id].get("coordinator")
     sensors = [
-        SleepFunctionButton(coordinator, device),
-        PurgeVentilationButton(coordinator, device),
+        SleepFunctionSwitch(coordinator, device),
+        PurgeVentilationSwitch(coordinator, device),
     ]
     async_add_entities(sensors, update_before_add=False)
 
@@ -44,7 +44,7 @@ class PowerboxSwitch(CoordinatorEntity, SwitchEntity, ModbusInfo):
         self.coordinator.write(self.address, 0)
 
 
-class SleepFunctionButton(PowerboxSwitch):
+class SleepFunctionSwitch(PowerboxSwitch):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         super().__init__(coordinator, device)
 
@@ -68,7 +68,7 @@ class SleepFunctionButton(PowerboxSwitch):
         self.coordinator.write(self.address, 1)
 
 
-class PurgeVentilationButton(PowerboxSwitch):
+class PurgeVentilationSwitch(PowerboxSwitch):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         super().__init__(coordinator, device)
 

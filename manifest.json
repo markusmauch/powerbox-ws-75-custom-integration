@@ -13,14 +13,5 @@
   "requirements": ["pymodbus==3.7.4"],
   "ssdp": [],
   "zeroconf": [],
-  "assets": {
-    "icon": "images/icon.png",
-    "logo": "images/logo.png"
-  },
-  "resources": [
-        {
-            "type": "module",
-            "url": "/local/community/powerbox/branding/logo.png"
-        }
-    ]
+  "icon": "custom_components/powerbox/icon.png"
 }

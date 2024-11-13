@@ -134,3 +134,13 @@ class VentilationLevelModeSelect(PowerboxSelect):
     @property
     def address(self) -> int:
         return 554
+
+    def _update_from_coordinator_data(self):
+        data = self.coordinator.data
+        read_address = 650
+        if data is not None and read_address in self.coordinator.data.keys():
+            new_value = self.coordinator.data[read_address]
+            keys = list(self.options_map.keys())
+            if new_value in keys and new_value != self._current_value:
+                self._current_value = new_value
+                self.async_write_ha_state()

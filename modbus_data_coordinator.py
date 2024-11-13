@@ -46,7 +46,7 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
             hass,
             logging.getLogger(__name__),
             name="Modbus Coordinator",
-            update_interval=timedelta(seconds=4),
+            update_interval=timedelta(seconds=2),
         )
         self._modbus_client = modbus_client
         self._data = {}
