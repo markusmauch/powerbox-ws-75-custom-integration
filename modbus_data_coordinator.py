@@ -72,6 +72,9 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
     def write(self, address: int, value: int):
         self._write_cache[address] = value
 
+    def soft_write(self, address: int, value: int):
+        self._data[address] = value
+
     async def _async_update_data(self):
         if self._busy == False:
             self._busy = True

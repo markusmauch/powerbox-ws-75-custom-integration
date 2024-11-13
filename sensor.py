@@ -7,7 +7,7 @@ from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
-from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR, TIME_DAYS
+from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR, TIME_DAYS, DEVICE_CLASS_POWER, POWER_WATT
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
@@ -24,6 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         # RemainingTimeRoomFilterSensor(coordinator, device),
         CurrentErrorSensor(coordinator, device),
         CurrentHintSensor(coordinator, device),
+        PowerSensor(coordinator, device),
     ]
     async_add_entities(sensors, update_before_add=False)
 
@@ -341,5 +342,54 @@ class CurrentHintSensor(PowerboxSensor):
             high_word = self.coordinator.data[self.address]
             low_word = self.coordinator.data[self.address + 1]
             return (high_word << 16) | low_word
+        else:
+            return None
+
+
+class PowerSensor(PowerboxSensor):
+    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        super().__init__(coordinator, device)
+
+    @property
+    def unit_of_measurement(self):
+        return POWER_WATT
+
+    @property
+    def device_class(self):
+        return DEVICE_CLASS_POWER
+
+    @property
+    def id(self):
+        return "power"
+
+    @property
+    def name(self):
+        return "Leistung"
+
+    @property
+    def icon(self):
+        """lightning-bolt"""
+        return "mdi:flash"
+
+    @property
+    def address(self) -> int:
+        return 650
+
+    @property
+    def length(self) -> int:
+        return 1
+
+    @property
+    def state(self):
+        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+            value = self.coordinator.data[self.address]
+            power_map = {
+                0: 1,
+                1: 5.2,
+                2: 6.1,
+                3: 8.3,
+                4: 11.5,
+            }
+            return power_map.get(value)
         else:
             return None

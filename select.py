@@ -132,15 +132,29 @@ class VentilationLevelModeSelect(PowerboxSelect):
         return "mdi:fan"
 
     @property
-    def address(self) -> int:
+    def write_address(self) -> int:
         return 554
+
+    @property
+    def read_address(self) -> int:
+        return 650
 
     def _update_from_coordinator_data(self):
         data = self.coordinator.data
-        read_address = 650
-        if data is not None and read_address in self.coordinator.data.keys():
-            new_value = self.coordinator.data[read_address]
+        if data is not None and self.read_address in self.coordinator.data.keys():
+            new_value = self.coordinator.data[self.read_address]
             keys = list(self.options_map.keys())
             if new_value in keys and new_value != self._current_value:
                 self._current_value = new_value
                 self.async_write_ha_state()
+
+    def select_option(self, option):
+        # Convert the selected string back to its integer key and store it
+        for key, value in self.options_map.items():
+            if value == option:
+                self._current_value = key
+                self.coordinator.write(self.write_address, key)
+                self.coordinator.soft_write(self.read_address, key)
+                self.schedule_update_ha_state()
+                return
+        raise ValueError(f"Option '{option}' is not a valid choice.")
