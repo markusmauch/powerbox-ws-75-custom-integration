@@ -1,3 +1,4 @@
+from .low_pass_filter import LowPassFilter
 from .const import DOMAIN, get_localized_name
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
 from homeassistant.components.sensor import ConfigType, SensorEntity
@@ -20,8 +21,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         VolumeFlowSupplySensor(coordinator, device),
         VolumeFlowExhaustSensor(coordinator, device),
         RemainingTimeDeviceFilterSensor(coordinator, device),
-        # RemainingTimeOutdoorFilterSensor(coordinator, device),
-        # RemainingTimeRoomFilterSensor(coordinator, device),
         CurrentErrorSensor(coordinator, device),
         CurrentHintSensor(coordinator, device),
         PowerSensor(coordinator, device),
@@ -54,16 +53,23 @@ class PowerboxSensor(CoordinatorEntity, SensorEntity, ModbusInfo):
     def state(self):
         if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
             value = self.coordinator.data[self.address]
-            return self.round_to_nearest( value * self.scale, self.precision ) if value is not None else None
+            return self.round_with_precision( value * self.scale ) if value is not None else None
         else:
             return None
 
-    def round_to_nearest(self, value, precision=0.5):
-        return round(value / precision) * precision
+    def round_with_precision(self, value):
+        return round(value / self.precision) * self.precision
 
 class RoomTemperatureSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        self._filter = LowPassFilter()
         super().__init__(coordinator, device)
+
+    @property
+    def state(self):
+        value = super().state if super().state is not None else 0
+        self._filter.add(value)
+        return super().round_with_precision(self._filter.value)
 
     @property
     def id(self):
@@ -95,12 +101,19 @@ class RoomTemperatureSensor(PowerboxSensor):
 
     @property
     def precision(self) -> float:
-        return 0.5
+        return 0.1
 
 
 class OutsideTemperatureSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        self._filter = LowPassFilter()
         super().__init__(coordinator, device)
+
+    @property
+    def state(self):
+        value = super().state if super().state is not None else 0
+        self._filter.add(value)
+        return super().round_with_precision(self._filter.value)
 
     @property
     def id(self):
@@ -132,7 +145,7 @@ class OutsideTemperatureSensor(PowerboxSensor):
 
     @property
     def precision(self) -> float:
-        return 0.5
+        return 0.1
 
 
 class AirHumiditySensor(PowerboxSensor):
