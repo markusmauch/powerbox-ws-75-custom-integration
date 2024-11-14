@@ -215,6 +215,7 @@ class VolumeFlowExhaustSensor(PowerboxSensor):
 
 class RemainingTimeDeviceFilterSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
         super().__init__(coordinator, device)
 
     @property
