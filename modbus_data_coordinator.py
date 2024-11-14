@@ -55,6 +55,7 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
         self._busy = False
         self._last_updated: datetime = None
         self._address_blocks: List[AddressBlock] = [
+            AddressBlock(150, 11),
             AddressBlock(401, 5),
             AddressBlock(550, 2),
             AddressBlock(553, 2),

@@ -8,7 +8,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR, TIME_DAYS, DEVICE_CLASS_POWER, POWER_WATT
-
+from homeassistant.helpers.entity import EntityCategory
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     device: dr.DeviceEntry = hass.data[DOMAIN][entry.entry_id].get("device")
@@ -54,10 +54,12 @@ class PowerboxSensor(CoordinatorEntity, SensorEntity, ModbusInfo):
     def state(self):
         if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
             value = self.coordinator.data[self.address]
-            return value * self.scale if value is not None else None
+            return self.round_to_nearest( value * self.scale, self.precision ) if value is not None else None
         else:
             return None
 
+    def round_to_nearest(self, value, precision=0.5):
+        return round(value / precision) * precision
 
 class RoomTemperatureSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
@@ -91,6 +93,10 @@ class RoomTemperatureSensor(PowerboxSensor):
     def scale(self) -> float:
         return 0.1
 
+    @property
+    def precision(self) -> float:
+        return 0.5
+
 
 class OutsideTemperatureSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
@@ -123,6 +129,10 @@ class OutsideTemperatureSensor(PowerboxSensor):
     @property
     def scale(self) -> float:
         return 0.1
+
+    @property
+    def precision(self) -> float:
+        return 0.5
 
 
 class AirHumiditySensor(PowerboxSensor):
@@ -255,6 +265,7 @@ class RemainingTimeOutdoorFilterSensor(PowerboxSensor):
 
 class RemainingTimeRoomFilterSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
         super().__init__(coordinator, device)
 
     @property
@@ -280,6 +291,7 @@ class RemainingTimeRoomFilterSensor(PowerboxSensor):
 
 class CurrentErrorSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
         super().__init__(coordinator, device)
 
     @property
@@ -314,6 +326,7 @@ class CurrentErrorSensor(PowerboxSensor):
 
 class CurrentHintSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
         super().__init__(coordinator, device)
 
     @property

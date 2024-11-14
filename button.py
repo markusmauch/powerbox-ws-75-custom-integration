@@ -6,6 +6,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity import EntityCategory
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     device: dr.DeviceEntry = hass.data[DOMAIN][entry.entry_id].get("device")
@@ -43,6 +44,7 @@ class PowerboxButton(CoordinatorEntity, ButtonEntity, ModbusInfo):
 
 class ResetErrorButton(PowerboxButton):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
+        self._attr_entity_category = EntityCategory.CONFIG
         super().__init__(coordinator, device)
 
     @property

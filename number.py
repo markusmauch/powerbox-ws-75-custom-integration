@@ -1,30 +1,25 @@
-from .const import DOMAIN, get_localized_name
+from .const import DOMAIN
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
-from datetime import timedelta
-from homeassistant.util import dt
-from homeassistant.components.binary_sensor import DEVICE_CLASS_CONNECTIVITY, DEVICE_CLASS_RUNNING, BinarySensorEntity
-from homeassistant.components.sensor import ConfigType
+from homeassistant.components.number import ConfigType, NumberEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
+from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TIME_MINUTES
 from homeassistant.helpers.entity import EntityCategory
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     device: dr.DeviceEntry = hass.data[DOMAIN][entry.entry_id].get("device")
     coordinator: ModbusDataCoordinator = hass.data[DOMAIN][entry.entry_id].get("coordinator")
     sensors = [
-        SleepFunctionBinarySensor(coordinator, device),
-        PurgeVentilationBinarySensor(coordinator, device),
-        IsAliveBinarySensor(coordinator, device),
+        SleepFuctionDurationSensor(coordinator, device),
     ]
     async_add_entities(sensors, update_before_add=False)
 
 
-class PowerboxBinarySensor(CoordinatorEntity, BinarySensorEntity, ModbusInfo):
+class PowerboxNumber(CoordinatorEntity, NumberEntity, ModbusInfo):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
         super().__init__(coordinator)
@@ -49,80 +44,55 @@ class PowerboxBinarySensor(CoordinatorEntity, BinarySensorEntity, ModbusInfo):
     def state(self):
         if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
             value = self.coordinator.data[self.address]
-            return "on" if value == 1 else "off"
+            return value * self.scale if value is not None else None
         else:
             return None
 
 
-class SleepFunctionBinarySensor(PowerboxBinarySensor):
+class SleepFuctionDurationSensor(PowerboxNumber):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+        self._attr_entity_category = EntityCategory.CONFIG
         super().__init__(coordinator, device)
 
     @property
     def id(self):
-        return "sleep_function"
+        return "sleep_function_duration"
 
     @property
     def name(self):
-        return "Einschlaffunktion"
+        return "Dauer Einschlaffunktion"
 
     @property
     def icon(self):
-        return "mdi:bed-clock"
+        return "mdi:clock-start"
+
+    @property
+    def unit_of_measurement(self):
+        return TIME_MINUTES
 
     @property
     def address(self) -> int:
-        return 559
-
-
-class PurgeVentilationBinarySensor(PowerboxBinarySensor):
-    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        super().__init__(coordinator, device)
+        return 160
 
     @property
-    def id(self):
-        return "purge_ventilation"
+    def min_value(self):
+        return 5
 
     @property
-    def name(self):
-        return "Stoßlüftung"
+    def max_value(self):
+        return 90
 
     @property
-    def icon(self):
-        return "mdi:weather-windy"
-
-    @property
-    def address(self) -> int:
-        return 551
-
-
-class IsAliveBinarySensor(PowerboxBinarySensor):
-    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        super().__init__(coordinator, device)
-
-    @property
-    def id(self):
-        return "last_updated"
-
-    @property
-    def name(self):
-        return "Status"
-
-    @property
-    def icon(self):
-        return "mdi:play-network"
-
-    @property
-    def device_class(self):
-        return DEVICE_CLASS_RUNNING
+    def step(self):
+        return 5
 
     @property
     def state(self):
-        if self.coordinator.last_updated == None:
-            return "off"
+        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+            value = self.coordinator.data[self.address]
+            return value if value is not None else None
         else:
-            time_difference = abs(self.coordinator.last_updated - dt.now())
-            return "off" if time_difference > timedelta(minutes=5) else "on"
+            return None
+
+    def set_value(self, value: float) -> None:
+        self.coordinator.write(self.address, int(value))
