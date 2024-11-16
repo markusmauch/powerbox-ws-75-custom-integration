@@ -1,4 +1,4 @@
-from .const import DOMAIN, get_localized_name
+from .const import DOMAIN
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
 from homeassistant.components.button import ButtonEntity
 from homeassistant.helpers import device_registry as dr

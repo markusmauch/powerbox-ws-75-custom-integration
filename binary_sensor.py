@@ -1,4 +1,4 @@
-from .const import DOMAIN, get_localized_name
+from .const import DOMAIN
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
 from datetime import timedelta
 from homeassistant.util import dt

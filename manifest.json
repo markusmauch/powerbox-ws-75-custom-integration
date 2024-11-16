@@ -1,5 +1,5 @@
 {
-  "domain": "powerbox",
+  "domain": "powerbox_ws_75",
   "name": "Powerbox WS 75",
   "codeowners": [
     "@markusmauch"
@@ -13,5 +13,5 @@
   "requirements": ["pymodbus==3.7.4"],
   "ssdp": [],
   "zeroconf": [],
-  "icon": "custom_components/powerbox/icon.png"
+  "icon": "custom_components/powerbox_ws_75/icon.png"
 }

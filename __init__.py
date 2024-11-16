@@ -2,7 +2,7 @@ from .modbus_data_coordinator import ModbusDataCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from pymodbus.client.tcp import ModbusTcpClient as ModbusClient
-from .const import DOMAIN, CONF_HOST, CONF_PORT
+from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_POLLING_INTERVAL
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import Platform
 
@@ -13,6 +13,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     host = entry.data[CONF_HOST]
     port = entry.data[CONF_PORT]
+    polling_interval = entry.data[CONF_POLLING_INTERVAL]
     data = {}
 
     # Create the Modbus client
@@ -29,7 +30,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     )
     data["device"] = device
 
-    coordinator = ModbusDataCoordinator(hass, modbus_client)
+    coordinator = ModbusDataCoordinator(hass, modbus_client, polling_interval)
     data["coordinator"] = coordinator
 
     hass.data.setdefault(DOMAIN, {})
@@ -55,6 +56,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     await hass.config_entries.async_forward_entry_unload(entry, Platform.BUTTON)
     await hass.config_entries.async_forward_entry_unload(entry, Platform.NUMBER)
     client: ModbusClient = domain_data[entry.entry_id].get("client")
-    client.close()  # Close the Modbus client connection
+    if client and client.is_socket_open():
+        client.close()
     domain_data.pop(entry.entry_id)
     return True

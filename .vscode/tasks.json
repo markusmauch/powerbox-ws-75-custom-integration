@@ -6,7 +6,7 @@
         {
             "label": "Copy Source Files",
             "type": "shell",
-            "command": "cp -r ~/Repositories/home-assistant-core/homeassistant/components/powerbox/*.* ${workspaceFolder}/"
+            "command": "cp -r ~/Repositories/home-assistant-core/homeassistant/components/powerbox_ws_75/*.* ${workspaceFolder}/"
         }
     ]
 }

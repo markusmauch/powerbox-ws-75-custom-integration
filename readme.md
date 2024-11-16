@@ -37,7 +37,7 @@ The integration uses the device's ability to communication via modbus. You have 
 After installation, click the 'Add Integration' button in 'Settings', 'Devices and Services' and search for 'powerbox'. Then add the connection parameters to connect with your device:
 
 
-name: "Maico Powerbox"
+name: "Maico Powerbox WS 75"
 host: IP address of your Maico Powerbox device
 port: Port (default is 80, change if necessary)
 unit_id: # The modbus unit id (10 is default)

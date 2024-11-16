@@ -41,12 +41,12 @@ class AddressBlock():
         return self._length
 
 class ModbusDataCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, modbus_client: ModbusClient):
+    def __init__(self, hass, modbus_client: ModbusClient, update_interval: int):
         super().__init__(
             hass,
             logging.getLogger(__name__),
             name="Modbus Coordinator",
-            update_interval=timedelta(seconds=2),
+            update_interval=timedelta(seconds=update_interval),
         )
         self._modbus_client = modbus_client
         self._data = {}
@@ -55,7 +55,7 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
         self._busy = False
         self._last_updated: datetime = None
         self._address_blocks: List[AddressBlock] = [
-            AddressBlock(150, 11),
+            AddressBlock(160, 1),
             AddressBlock(401, 5),
             AddressBlock(550, 2),
             AddressBlock(553, 2),

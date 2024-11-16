@@ -1,5 +1,5 @@
 from .low_pass_filter import LowPassFilter
-from .const import DOMAIN, get_localized_name
+from .const import DOMAIN
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
 from homeassistant.components.sensor import ConfigType, SensorEntity
 from homeassistant.config_entries import ConfigEntry
