@@ -17,8 +17,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
     device: dr.DeviceEntry = hass.data[DOMAIN][entry.entry_id].get("device")
     coordinator: ModbusDataCoordinator = hass.data[DOMAIN][entry.entry_id].get("coordinator")
     sensors = [
-        SleepFunctionBinarySensor(coordinator, device),
-        PurgeVentilationBinarySensor(coordinator, device),
         IsAliveBinarySensor(coordinator, device),
     ]
     async_add_entities(sensors, update_before_add=False)
@@ -51,50 +49,6 @@ class PowerboxBinarySensor(CoordinatorEntity, BinarySensorEntity, ModbusInfo):
             return "on" if value == 1 else "off"
         else:
             return None
-
-
-class SleepFunctionBinarySensor(PowerboxBinarySensor):
-    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        super().__init__(coordinator, device)
-
-    @property
-    def id(self):
-        return "sleep_function"
-
-    @property
-    def name(self):
-        return "Einschlaffunktion"
-
-    @property
-    def icon(self):
-        return "mdi:bed-clock"
-
-    @property
-    def address(self) -> int:
-        return 559
-
-
-class PurgeVentilationBinarySensor(PowerboxBinarySensor):
-    def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
-        self._attr_entity_category = EntityCategory.DIAGNOSTIC
-        super().__init__(coordinator, device)
-
-    @property
-    def id(self):
-        return "purge_ventilation"
-
-    @property
-    def name(self):
-        return "Stoßlüftung"
-
-    @property
-    def icon(self):
-        return "mdi:weather-windy"
-
-    @property
-    def address(self) -> int:
-        return 551
 
 
 class IsAliveBinarySensor(PowerboxBinarySensor):

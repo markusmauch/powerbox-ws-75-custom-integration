@@ -38,9 +38,19 @@ class PowerboxSwitch(CoordinatorEntity, SwitchEntity, ModbusInfo):
 
     def turn_on(self) -> None:
         self.coordinator.write(self.address, 1)
+        self.coordinator.soft_write(self.address, 1)
 
     def turn_off(self) -> None:
         self.coordinator.write(self.address, 0)
+        self.coordinator.soft_write(self.address, 0)
+
+    @property
+    def state(self):
+        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+            value = self.coordinator.data[self.address]
+            return "on" if value == 1 else "off"
+        else:
+            return None
 
 
 class SleepFunctionSwitch(PowerboxSwitch):
