@@ -23,7 +23,7 @@ class PowerboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            return self.async_create_entry(title=f"Powerbox {user_input[CONF_NAME]}", data=user_input)
+            return self.async_create_entry(title=f"{user_input[CONF_NAME]}", data=user_input)
 
         # placeholders = {
         #     "host": self.hass.config.components["homeassistant"].translations["en"]["config"]["step"]["user"]["host"],
