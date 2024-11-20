@@ -20,6 +20,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class PowerboxSelect(CoordinatorEntity, SelectEntity, ModbusInfo):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
+        self._attr_unique_id = f"{self._device.name.lower()}_{self.id}"
+        self._attr_name = self.name
+        self.entity_id = f"select.{self._attr_unique_id}"
         self._current_value = 0  # Internal integer state
         super().__init__(coordinator)
 
@@ -30,10 +33,6 @@ class PowerboxSelect(CoordinatorEntity, SelectEntity, ModbusInfo):
     @property
     def current_option(self):
         return self.options_map.get(self._current_value)
-
-    @property
-    def unique_id(self):
-        return f"{self.id}_{self._device.id}"
 
     @property
     def device_info(self) -> DeviceInfo:

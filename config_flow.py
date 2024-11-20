@@ -1,10 +1,11 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
-from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_UNIT_ID, CONF_POLLING_INTERVAL
+from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_UNIT_ID, CONF_POLLING_INTERVAL, CONF_NAME
 
 DATA_SCHEMA = vol.Schema({
-    vol.Required(CONF_HOST, default="powerbox.local", description="Powerbox hostname or IP address", msg="TEST"): str,
+    vol.Required(CONF_NAME, default="Powerbox", description="Device name"): str,
+    vol.Required(CONF_HOST, default="powerbox.local", description="Powerbox hostname or IP address"): str,
     vol.Required(CONF_PORT, default=502, description="Modbus TCP port of the powerbox"): int,
     vol.Required(CONF_UNIT_ID, default=10, description="Modbus Unit ID of the powerbox"): int,
     vol.Required(CONF_POLLING_INTERVAL, default=5, description="Modbus polling interval"): int,
@@ -22,7 +23,7 @@ class PowerboxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
 
         if user_input is not None:
-            return self.async_create_entry(title=f"Powerbox {user_input[CONF_HOST]}", data=user_input)
+            return self.async_create_entry(title=f"Powerbox {user_input[CONF_NAME]}", data=user_input)
 
         # placeholders = {
         #     "host": self.hass.config.components["homeassistant"].translations["en"]["config"]["step"]["user"]["host"],

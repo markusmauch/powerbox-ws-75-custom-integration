@@ -22,6 +22,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class PowerboxNumber(CoordinatorEntity, NumberEntity, ModbusInfo):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
+        self._attr_unique_id = f"{self._device.name.lower()}_{self.id}"
+        self._attr_name = self.name
+        self.entity_id = f"number.{self._attr_unique_id}"
         super().__init__(coordinator)
 
     @property

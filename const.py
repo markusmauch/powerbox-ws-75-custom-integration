@@ -1,4 +1,5 @@
 DOMAIN = "powerbox_ws_75"
+CONF_NAME = "name"
 CONF_HOST = "host"
 CONF_PORT = "port"
 CONF_UNIT_ID = "unit_id"

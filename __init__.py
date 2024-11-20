@@ -4,13 +4,14 @@ from homeassistant.core import HomeAssistant
 from pymodbus.client.tcp import ModbusTcpClient as ModbusClient
 from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_POLLING_INTERVAL
 from homeassistant.helpers import device_registry as dr
-from homeassistant.const import Platform
+from homeassistant.const import CONF_NAME, Platform
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    name = entry.data[CONF_NAME]
     host = entry.data[CONF_HOST]
     port = entry.data[CONF_PORT]
     polling_interval = entry.data[CONF_POLLING_INTERVAL]
@@ -24,7 +25,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     device = device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
         identifiers={(DOMAIN, entry.unique_id)},
-        name="Powerbox",
+        name=name,
         model="WS 75",
         manufacturer="Maico"
     )

@@ -19,6 +19,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
 class PowerboxSwitch(CoordinatorEntity, SwitchEntity, ModbusInfo):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._device = device
+        self._attr_unique_id = f"{self._device.name.lower()}_{self.id}"
+        self._attr_name = self.name
+        self.entity_id = f"switch.{self._attr_unique_id}"
         super().__init__(coordinator)
 
     @property
@@ -32,10 +35,6 @@ class PowerboxSwitch(CoordinatorEntity, SwitchEntity, ModbusInfo):
             "sw_version": self._device.sw_version,
             "hw_version": self._device.hw_version,
         }
-
-    @property
-    def unique_id(self):
-        return f"{self.id}_{self._device.id}"
 
     def turn_on(self) -> None:
         self.coordinator.write(self.address, 1)
