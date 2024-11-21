@@ -6,7 +6,7 @@ class LowPassFilter():
 
     def add(self, value):
         if self._values.__len__() < self._size:
-            if value != self._values[self._values.__len__() - 1]:
+            if self._values.__len__() == 0 or value != self._values[self._values.__len__() - 1]:
                 self._values.append(value)
         else:
             if value != self._values[self._index]:
