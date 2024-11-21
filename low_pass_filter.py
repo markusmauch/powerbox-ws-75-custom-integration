@@ -6,10 +6,12 @@ class LowPassFilter():
 
     def add(self, value):
         if self._values.__len__() < self._size:
-            self._values.append(value)
+            if value != self._values[self._values.__len__() - 1]:
+                self._values.append(value)
         else:
-            self._index = (self._index + 1) % self._size
-            self._values[self._index] = value
+            if value != self._values[self._index]:
+                self._index = (self._index + 1) % self._size
+                self._values[self._index] = value
 
     @property
     def value(self):
