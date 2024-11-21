@@ -112,7 +112,10 @@ class OutsideTemperatureSensor(PowerboxSensor):
     def state(self):
         value = super().state if super().state is not None else 0
         self._filter.add(value)
-        return super().round_with_precision(self._filter.value)
+        value = super().round_with_precision(self._filter.value)
+        if value > 32767:
+            return value - 65536
+        return value 
 
     @property
     def id(self):
