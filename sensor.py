@@ -110,12 +110,19 @@ class OutsideTemperatureSensor(PowerboxSensor):
 
     @property
     def state(self):
+        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+            value = self.coordinator.data[self.address]
+            if value is not None:
+                if value > 32767:
+                    value = value - 65536
+                value = self.round_with_precision( value * self.scale )
+                self._filter.add(value)
+                return super().round_with_precision(self._filter.value)
+        return None
+        
+        
         value = super().state if super().state is not None else 0
-        self._filter.add(value)
-        value = super().round_with_precision(self._filter.value)
-        if value > 32767:
-            return value - 65536
-        return value 
+        
 
     @property
     def id(self):
