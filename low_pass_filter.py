@@ -8,6 +8,7 @@ class LowPassFilter():
         if self._values.__len__() < self._size:
             if self._values.__len__() == 0 or value != self._values[self._values.__len__() - 1]:
                 self._values.append(value)
+                self._index = self._values.__len__() - 1
         else:
             if value != self._values[self._index]:
                 self._index = (self._index + 1) % self._size
@@ -18,4 +19,4 @@ class LowPassFilter():
         sum = 0
         for value in self._values:
             sum = sum + value
-        return sum / self._values.__len__()
+        return 0 if self._values.__len__() == 0 else round(sum / self._values.__len__(), 1)
