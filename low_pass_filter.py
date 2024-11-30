@@ -10,27 +10,3 @@ class LowPassFilter:
     @property
     def value(self):
         return round(sum(self._values) / len(self._values), 1)
-
-
-# class LowPassFilter():
-#     def __init__(self, size = 10):
-#         self._size = 1 if size < 1 else size
-#         self._values = []
-#         self._index = -1
-
-#     def add(self, value):
-#         if self._values.__len__() < self._size:
-#             if self._values.__len__() == 0 or value != self._values[self._values.__len__() - 1]:
-#                 self._values.append(value)
-#                 self._index = self._values.__len__() - 1
-#         else:
-#             if value != self._values[self._index]:
-#                 self._index = (self._index + 1) % self._size
-#                 self._values[self._index] = value
-
-#     @property
-#     def value(self):
-#         sum = 0
-#         for value in self._values:
-#             sum = sum + value
-#         return 0 if self._values.__len__() == 0 else round(sum / self._values.__len__(), 1)

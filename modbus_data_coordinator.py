@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import datetime
 from homeassistant.util import dt
@@ -41,14 +42,15 @@ class AddressBlock():
         return self._length
 
 class ModbusDataCoordinator(DataUpdateCoordinator):
-    def __init__(self, hass, modbus_client: ModbusClient, update_interval: int):
+    def __init__(self, hass, host: str, port: int, update_interval: int):
         super().__init__(
             hass,
             logging.getLogger(__name__),
             name="Modbus Coordinator",
             update_interval=timedelta(seconds=update_interval),
         )
-        self._modbus_client = modbus_client
+        self._host = host
+        self._port = port
         self._data = {}
         self._write_cache = {}
         self._current_address_block_index = -1
@@ -79,29 +81,47 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self):
         if self._busy == False:
             self._busy = True
-            if self._write_cache.__len__() != 0:
-                (address, value) = self._write_cache.popitem()
-                try:
-                    self._modbus_client.write_registers(address, value)
-                    self._data[address] = value
-                    self._last_updated = dt.now()
-                except Exception as e:
-                    self._data[address] = None
-                    self.logger.error(f"Error writing value '{value}' to register {address}.")
+            modbus_client = ModbusClient(host=self._host, port=self._port)
+            connected = modbus_client.connect()
+            if connected == True:
+                if self._write_cache.__len__() != 0:
+                    (address, value) = self._write_cache.popitem()
+                    try:
+                        result = await asyncio.to_thread(modbus_client.write_registers, address, value)
+                        if result.isError():
+                            self._data[address] = None
+                            self.logger.error(f"Error writing value '{value}' to register {address}.")
+                        else:
+                            self._data[address] = value
+                            self._last_updated = dt.now()
+                    except Exception as e:
+                        self._data[address] = None
+                        self.logger.error(f"Error writing value '{value}' to register {address}.")
+                else:
+                    address_block = self._next_address_block()
+                    address = address_block.address
+                    length = address_block.length
+                    try:
+                        result = await asyncio.to_thread(modbus_client.read_holding_registers, address, length)
+                        if result.isError():
+                            self._data[address] = None
+                            self.logger.error(f"Error reading register {address}.")
+                        else:
+                            registers = result.registers
+                            for i in range(0, length):
+                                self._data[address + i] = registers[i]
+                            self._last_updated = dt.now()
+                    except Exception as e:
+                        self._data[address] = None
+                        self.logger.error(f"Error reading register {address}.")
+                self._busy = False
+                modbus_client.close()
             else:
-                address_block = self._next_address_block()
-                address = address_block.address
-                length = address_block.length
-                try:
-                    registers = self._modbus_client.read_holding_registers(address, length).registers
-                    for i in range(0, length):
-                        self._data[address + i] = registers[i]
-                    self._last_updated = dt.now()
-                except Exception as e:
-                    self._data[address] = None
-                    self.logger.error(f"Error reading register {address}.")
-            self._busy = False
+                self.logger.error(f"Unable to connect to modbus slave.")
         return self._data.copy()
+
+    def worker():
+        return 1
 
     def _next_address_block(self) -> AddressBlock:
         self._current_address_block_index = (self._current_address_block_index + 1) % self._address_blocks.__len__()

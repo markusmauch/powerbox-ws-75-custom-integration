@@ -17,10 +17,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     polling_interval = entry.data[CONF_POLLING_INTERVAL]
     data = {}
 
-    # Create the Modbus client
-    modbus_client = ModbusClient(host, port=port)
-    data["client"] = modbus_client
-
     device_registry = dr.async_get(hass)
     device = device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
@@ -31,20 +27,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     )
     data["device"] = device
 
-    coordinator = ModbusDataCoordinator(hass, modbus_client, polling_interval)
+    coordinator = ModbusDataCoordinator(hass, host, port, polling_interval)
     data["coordinator"] = coordinator
 
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = data
 
     # Forward entry setup to the sensor platform
-    await hass.config_entries.async_forward_entry_setup(entry, Platform.SENSOR)
-    await hass.config_entries.async_forward_entry_setup(entry, Platform.BINARY_SENSOR)
-    await hass.config_entries.async_forward_entry_setup(entry, Platform.SELECT)
-    await hass.config_entries.async_forward_entry_setup(entry, Platform.SWITCH)
-    await hass.config_entries.async_forward_entry_setup(entry, Platform.BUTTON)
-    await hass.config_entries.async_forward_entry_setup(entry, Platform.NUMBER)
-
+    await hass.config_entries.async_forward_entry_setups(entry, [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.SELECT, Platform.SWITCH, Platform.BUTTON, Platform.NUMBER])
     return True
 
 
@@ -56,8 +46,5 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     await hass.config_entries.async_forward_entry_unload(entry, Platform.SWITCH)
     await hass.config_entries.async_forward_entry_unload(entry, Platform.BUTTON)
     await hass.config_entries.async_forward_entry_unload(entry, Platform.NUMBER)
-    client: ModbusClient = domain_data[entry.entry_id].get("client")
-    if client and client.is_socket_open():
-        client.close()
     domain_data.pop(entry.entry_id)
     return True

@@ -66,9 +66,16 @@ class RoomTemperatureSensor(PowerboxSensor):
 
     @property
     def state(self):
-        value = super().state if super().state is not None else 0
-        self._filter.add(value)
-        return super().round_with_precision(self._filter.value)
+        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+            value = self.coordinator.data[self.address]
+            if value is not None:
+                if value > 32767:
+                    value = value - 65536
+                value = self.round_with_precision( value * self.scale )
+                self._filter.add(value)
+                return super().round_with_precision(self._filter.value)
+        return None
+
 
     @property
     def id(self):
@@ -119,10 +126,7 @@ class OutsideTemperatureSensor(PowerboxSensor):
                 self._filter.add(value)
                 return super().round_with_precision(self._filter.value)
         return None
-        
-        
-        value = super().state if super().state is not None else 0
-        
+
 
     @property
     def id(self):
@@ -340,8 +344,8 @@ class CurrentErrorSensor(PowerboxSensor):
     @property
     def state(self):
         if self.coordinator.data is not None and (self.address in self.coordinator.data.keys() and self.address + 1 in self.coordinator.data.keys()):
-            high_word = self.coordinator.data[self.address]
-            low_word = self.coordinator.data[self.address + 1]
+            high_word: int = self.coordinator.data[self.address]
+            low_word: int = self.coordinator.data[self.address + 1]
             return (high_word << 16) | low_word
         else:
             return None
