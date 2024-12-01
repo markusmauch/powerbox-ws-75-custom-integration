@@ -1,8 +1,7 @@
+from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_POLLING_INTERVAL
 from .modbus_data_coordinator import ModbusDataCoordinator
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from pymodbus.client.tcp import ModbusTcpClient as ModbusClient
-from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_POLLING_INTERVAL
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import CONF_NAME, Platform
 

@@ -1,6 +1,6 @@
 
 class LowPassFilter:
-    def __init__(self, alpha: float = 0.5):
+    def __init__(self, alpha: float = 0.8):
         """
         Initialize the LowPassFilter.
         :param alpha: Smoothing factor (0 < alpha < 1), determines the weight of new vs old values.

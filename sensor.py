@@ -1,18 +1,14 @@
-from .low_pass_filter import LowPassFilter
 from .const import DOMAIN
+from .low_pass_filter import LowPassFilter
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
 from homeassistant.components.sensor import ConfigType, SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import DiscoveryInfoType
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
 from homeassistant.const import TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR
 from homeassistant.const import UnitOfTime, UnitOfPower
-
-
-from homeassistant.helpers.entity import EntityCategory
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
     device: dr.DeviceEntry = hass.data[DOMAIN][entry.entry_id].get("device")

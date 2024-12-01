@@ -55,11 +55,20 @@ class PowerboxNumber(CoordinatorEntity, NumberEntity, ModbusInfo):
 class SleepFuctionDurationSensor(PowerboxNumber):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._attr_entity_category = EntityCategory.CONFIG
-        self._attr_min_value = 5
-        self._attr_max_value = 90
-        self._attr_native_step = 5
         self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
         super().__init__(coordinator, device)
+
+    @property
+    def min_value(self) -> float:
+        return 5
+
+    @property
+    def maxn_value(self) -> float:
+        return 90
+
+    @property
+    def step(self) -> float:
+        return 5
 
     @property
     def id(self):
