@@ -26,7 +26,7 @@ class LowPassFilter:
         Return the current smoothed value.
         :return: The smoothed value, or None if no values have been added yet.
         """
-        return round(self._current_value, 2) if self._current_value is not None else None
+        return round(self._current_value, 1) if self._current_value is not None else None
 
 
 
