@@ -7,7 +7,7 @@ from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
-from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TIME_MINUTES
+from homeassistant.const import UnitOfTime
 from homeassistant.helpers.entity import EntityCategory
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
@@ -55,6 +55,10 @@ class PowerboxNumber(CoordinatorEntity, NumberEntity, ModbusInfo):
 class SleepFuctionDurationSensor(PowerboxNumber):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
         self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_min_value = 5
+        self._attr_max_value = 90
+        self._attr_native_step = 5
+        self._attr_native_unit_of_measurement = UnitOfTime.MINUTES
         super().__init__(coordinator, device)
 
     @property
@@ -70,24 +74,8 @@ class SleepFuctionDurationSensor(PowerboxNumber):
         return "mdi:clock-start"
 
     @property
-    def unit_of_measurement(self):
-        return TIME_MINUTES
-
-    @property
     def address(self) -> int:
         return 160
-
-    @property
-    def min_value(self):
-        return 5
-
-    @property
-    def max_value(self):
-        return 90
-
-    @property
-    def step(self):
-        return 5
 
     @property
     def state(self):

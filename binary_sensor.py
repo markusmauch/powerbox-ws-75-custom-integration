@@ -2,7 +2,7 @@ from .const import DOMAIN
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
 from datetime import timedelta
 from homeassistant.util import dt
-from homeassistant.components.binary_sensor import DEVICE_CLASS_CONNECTIVITY, DEVICE_CLASS_RUNNING, BinarySensorEntity
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass, BinarySensorEntity
 from homeassistant.components.sensor import ConfigType
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -70,7 +70,7 @@ class IsAliveBinarySensor(PowerboxBinarySensor):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_RUNNING
+        return BinarySensorDeviceClass.RUNNING
 
     @property
     def state(self):

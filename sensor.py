@@ -1,14 +1,16 @@
 from .low_pass_filter import LowPassFilter
 from .const import DOMAIN
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
-from homeassistant.components.sensor import ConfigType, SensorEntity
+from homeassistant.components.sensor import ConfigType, SensorEntity, SensorDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import DiscoveryInfoType
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers import device_registry as dr
-from homeassistant.const import DEVICE_CLASS_TEMPERATURE, TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR, TIME_DAYS, DEVICE_CLASS_POWER, POWER_WATT
+from homeassistant.const import TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR
+from homeassistant.const import UnitOfTime, UnitOfPower
+
 from homeassistant.helpers.entity import EntityCategory
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
@@ -95,7 +97,7 @@ class RoomTemperatureSensor(PowerboxSensor):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_TEMPERATURE
+        return SensorDeviceClass.TEMPERATURE
 
     @property
     def address(self) -> int:
@@ -146,7 +148,7 @@ class OutsideTemperatureSensor(PowerboxSensor):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_TEMPERATURE
+        return SensorDeviceClass.TEMPERATURE
 
     @property
     def address(self) -> int:
@@ -258,7 +260,7 @@ class RemainingTimeDeviceFilterSensor(PowerboxSensor):
 
     @property
     def unit_of_measurement(self):
-        return TIME_DAYS
+        return UnitOfTime.DAYS
 
     @property
     def address(self) -> int:
@@ -283,7 +285,7 @@ class RemainingTimeOutdoorFilterSensor(PowerboxSensor):
 
     @property
     def unit_of_measurement(self):
-        return TIME_DAYS
+        return UnitOfTime.DAYS
 
     @property
     def address(self) -> int:
@@ -309,7 +311,7 @@ class RemainingTimeRoomFilterSensor(PowerboxSensor):
 
     @property
     def unit_of_measurement(self):
-        return TIME_DAYS
+        return UnitOfTime.DAYS
 
     @property
     def address(self) -> int:
@@ -343,12 +345,13 @@ class CurrentErrorSensor(PowerboxSensor):
 
     @property
     def state(self):
-        if self.coordinator.data is not None and (self.address in self.coordinator.data.keys() and self.address + 1 in self.coordinator.data.keys()):
-            high_word: int = self.coordinator.data[self.address]
-            low_word: int = self.coordinator.data[self.address + 1]
-            return (high_word << 16) | low_word
-        else:
-            return None
+        if self.coordinator.data is not None:
+            if self.address in self.coordinator.data.keys() and self.address + 1 in self.coordinator.data.keys():
+                if self.coordinator.data[self.address] is not None and self.coordinator.data[self.address + 1] is not None:
+                    high_word: int = self.coordinator.data[self.address]
+                    low_word: int = self.coordinator.data[self.address + 1]
+                    return (high_word << 16) | low_word
+        return None
 
 
 class CurrentHintSensor(PowerboxSensor):
@@ -378,12 +381,13 @@ class CurrentHintSensor(PowerboxSensor):
 
     @property
     def state(self):
-        if self.coordinator.data is not None and (self.address in self.coordinator.data.keys() and self.address + 1 in self.coordinator.data.keys()):
-            high_word = self.coordinator.data[self.address]
-            low_word = self.coordinator.data[self.address + 1]
-            return (high_word << 16) | low_word
-        else:
-            return None
+        if self.coordinator.data is not None:
+            if self.address in self.coordinator.data.keys() and self.address + 1 in self.coordinator.data.keys():
+                if self.coordinator.data[self.address] is not None and self.coordinator.data[self.address + 1] is not None:
+                    high_word: int = self.coordinator.data[self.address]
+                    low_word: int = self.coordinator.data[self.address + 1]
+                    return (high_word << 16) | low_word
+        return None
 
 
 class PowerSensor(PowerboxSensor):
@@ -392,11 +396,11 @@ class PowerSensor(PowerboxSensor):
 
     @property
     def unit_of_measurement(self):
-        return POWER_WATT
+        return UnitOfPower.WATT
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_POWER
+        return SensorDeviceClass.POWER
 
     @property
     def id(self):
