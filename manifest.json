@@ -1,6 +1,7 @@
 {
   "domain": "powerbox_ws_75",
   "name": "Powerbox WS 75",
+  "version": "0.9.5",
   "codeowners": [
     "@markusmauch"
   ],
