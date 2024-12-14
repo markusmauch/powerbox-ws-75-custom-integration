@@ -15,9 +15,7 @@ class LowPassFilter:
         Add a new measurement and update the smoothed value.
         :param value: The new measurement to add.
         """
-        if self._current_value is None:
-            self._current_value = value
-        else:
+        if self._current_value is not None:
             self._current_value = self.alpha * value + (1 - self.alpha) * self._current_value
 
     @property
