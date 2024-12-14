@@ -1,6 +1,6 @@
 
 class LowPassFilter:
-    def __init__(self, alpha: float = 0.8):
+    def __init__(self, alpha: float = 0.6):
         """
         Initialize the LowPassFilter.
         :param alpha: Smoothing factor (0 < alpha < 1), determines the weight of new vs old values.
@@ -15,8 +15,11 @@ class LowPassFilter:
         Add a new measurement and update the smoothed value.
         :param value: The new measurement to add.
         """
-        if self._current_value is not None:
-            self._current_value = self.alpha * value + (1 - self.alpha) * self._current_value
+        if value is not None:
+            if self._current_value is None:
+                self._current_value = value
+            else:
+                self._current_value = self.alpha * value + (1 - self.alpha) * self._current_value
 
     @property
     def value(self):
