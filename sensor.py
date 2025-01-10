@@ -1,18 +1,31 @@
+from homeassistant.components.sensor import ConfigType, SensorDeviceClass, SensorEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import (
+    DEVICE_CLASS_HUMIDITY,
+    PERCENTAGE,
+    TEMP_CELSIUS,
+    VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR,
+    UnitOfPower,
+    UnitOfTemperature,
+    UnitOfTime,
+)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
 from .const import DOMAIN
 from .low_pass_filter import LowPassFilter
 from .modbus_data_coordinator import ModbusDataCoordinator, ModbusInfo
-from homeassistant.components.sensor import ConfigType, SensorEntity, SensorDeviceClass
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo, EntityCategory
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers import device_registry as dr
-from homeassistant.const import TEMP_CELSIUS, PERCENTAGE, DEVICE_CLASS_HUMIDITY, VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR
-from homeassistant.const import UnitOfTime, UnitOfPower
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities) -> None:
+
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
+) -> None:
     device: dr.DeviceEntry = hass.data[DOMAIN][entry.entry_id].get("device")
-    coordinator: ModbusDataCoordinator = hass.data[DOMAIN][entry.entry_id].get("coordinator")
+    coordinator: ModbusDataCoordinator = hass.data[DOMAIN][entry.entry_id].get(
+        "coordinator"
+    )
     sensors = [
         RoomTemperatureSensor(coordinator, device),
         OutsideTemperatureSensor(coordinator, device),
@@ -49,14 +62,22 @@ class PowerboxSensor(CoordinatorEntity, SensorEntity, ModbusInfo):
 
     @property
     def state(self):
-        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+        if (
+            self.coordinator.data is not None
+            and self.address in self.coordinator.data.keys()
+        ):
             value = self.coordinator.data[self.address]
-            return self.round_with_precision( value * self.scale ) if value is not None else None
+            return (
+                self.round_with_precision(value * self.scale)
+                if value is not None
+                else None
+            )
         else:
             return None
 
     def round_with_precision(self, value):
         return round(value / self.precision) * self.precision
+
 
 class RoomTemperatureSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
@@ -65,16 +86,18 @@ class RoomTemperatureSensor(PowerboxSensor):
 
     @property
     def state(self):
-        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+        if (
+            self.coordinator.data is not None
+            and self.address in self.coordinator.data.keys()
+        ):
             value = self.coordinator.data[self.address]
             if value is not None:
                 if value > 32767:
                     value = value - 65536
-                value = self.round_with_precision( value * self.scale )
+                value = self.round_with_precision(value * self.scale)
                 self._filter.add(value)
                 return super().round_with_precision(self._filter.value)
         return None
-
 
     @property
     def id(self):
@@ -90,7 +113,7 @@ class RoomTemperatureSensor(PowerboxSensor):
 
     @property
     def unit_of_measurement(self):
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def device_class(self):
@@ -116,16 +139,18 @@ class OutsideTemperatureSensor(PowerboxSensor):
 
     @property
     def state(self):
-        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+        if (
+            self.coordinator.data is not None
+            and self.address in self.coordinator.data.keys()
+        ):
             value = self.coordinator.data[self.address]
             if value is not None:
                 if value > 32767:
                     value = value - 65536
-                value = self.round_with_precision( value * self.scale )
+                value = self.round_with_precision(value * self.scale)
                 self._filter.add(value)
                 return super().round_with_precision(self._filter.value)
         return None
-
 
     @property
     def id(self):
@@ -141,7 +166,7 @@ class OutsideTemperatureSensor(PowerboxSensor):
 
     @property
     def unit_of_measurement(self):
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def device_class(self):
@@ -237,6 +262,7 @@ class VolumeFlowExhaustSensor(PowerboxSensor):
     @property
     def address(self) -> int:
         return 654
+
 
 class RemainingTimeDeviceFilterSensor(PowerboxSensor):
     def __init__(self, coordinator: ModbusDataCoordinator, device: dr.DeviceEntry):
@@ -343,8 +369,14 @@ class CurrentErrorSensor(PowerboxSensor):
     @property
     def state(self):
         if self.coordinator.data is not None:
-            if self.address in self.coordinator.data.keys() and self.address + 1 in self.coordinator.data.keys():
-                if self.coordinator.data[self.address] is not None and self.coordinator.data[self.address + 1] is not None:
+            if (
+                self.address in self.coordinator.data.keys()
+                and self.address + 1 in self.coordinator.data.keys()
+            ):
+                if (
+                    self.coordinator.data[self.address] is not None
+                    and self.coordinator.data[self.address + 1] is not None
+                ):
                     high_word: int = self.coordinator.data[self.address]
                     low_word: int = self.coordinator.data[self.address + 1]
                     return (high_word << 16) | low_word
@@ -379,8 +411,14 @@ class CurrentHintSensor(PowerboxSensor):
     @property
     def state(self):
         if self.coordinator.data is not None:
-            if self.address in self.coordinator.data.keys() and self.address + 1 in self.coordinator.data.keys():
-                if self.coordinator.data[self.address] is not None and self.coordinator.data[self.address + 1] is not None:
+            if (
+                self.address in self.coordinator.data.keys()
+                and self.address + 1 in self.coordinator.data.keys()
+            ):
+                if (
+                    self.coordinator.data[self.address] is not None
+                    and self.coordinator.data[self.address + 1] is not None
+                ):
                     high_word: int = self.coordinator.data[self.address]
                     low_word: int = self.coordinator.data[self.address + 1]
                     return (high_word << 16) | low_word
@@ -422,7 +460,10 @@ class PowerSensor(PowerboxSensor):
 
     @property
     def state(self):
-        if self.coordinator.data is not None and self.address in self.coordinator.data.keys():
+        if (
+            self.coordinator.data is not None
+            and self.address in self.coordinator.data.keys()
+        ):
             value = self.coordinator.data[self.address]
             power_map = {
                 0: 1,
