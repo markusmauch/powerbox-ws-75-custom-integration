@@ -2,10 +2,10 @@ from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
-    VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR,
     UnitOfPower,
     UnitOfTemperature,
     UnitOfTime,
+    UnitOfVolumeFlowRate,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
@@ -230,7 +230,7 @@ class VolumeFlowSupplySensor(PowerboxSensor):
 
     @property
     def unit_of_measurement(self):
-        return VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR
+        return UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR
 
     @property
     def address(self) -> int:
@@ -255,7 +255,7 @@ class VolumeFlowExhaustSensor(PowerboxSensor):
 
     @property
     def unit_of_measurement(self):
-        return VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR
+        return UnitOfVolumeFlowRate.CUBIC_METERS_PER_HOUR
 
     @property
     def address(self) -> int:
