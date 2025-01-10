@@ -4,7 +4,7 @@
   "codeowners": [
     "@markusmauch"
   ],
-  "version": "0.9.8",
+  "version": "0.9.9",
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/markusmauch/powerbox-ws-75-custom-integration/readme.md",

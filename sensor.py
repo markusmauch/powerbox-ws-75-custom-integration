@@ -1,9 +1,7 @@
-from homeassistant.components.sensor import ConfigType, SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    DEVICE_CLASS_HUMIDITY,
     PERCENTAGE,
-    TEMP_CELSIUS,
     VOLUME_FLOW_RATE_CUBIC_METERS_PER_HOUR,
     UnitOfPower,
     UnitOfTemperature,
@@ -207,7 +205,7 @@ class AirHumiditySensor(PowerboxSensor):
 
     @property
     def device_class(self):
-        return DEVICE_CLASS_HUMIDITY
+        return SensorDeviceClass.HUMIDITY
 
     @property
     def address(self) -> int:
