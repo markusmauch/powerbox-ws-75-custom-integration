@@ -8,9 +8,6 @@
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/markusmauch/powerbox-ws-75-custom-integration/readme.md",
-  "homekit": {},
   "iot_class": "local_polling",
-  "requirements": ["pymodbus==3.7.4"],
-  "ssdp": [],
-  "zeroconf": []
+  "requirements": ["pymodbus==3.9.2"]
 }

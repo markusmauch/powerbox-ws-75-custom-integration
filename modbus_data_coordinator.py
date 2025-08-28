@@ -7,7 +7,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from pymodbus.client.tcp import ModbusTcpClient as ModbusClient
 from typing import List
 
-class ModbusInfo():
+
+class ModbusInfo:
     @property
     def unique_id(self) -> str:
         return None
@@ -28,7 +29,8 @@ class ModbusInfo():
     def precision(self) -> float:
         return 1
 
-class AddressBlock():
+
+class AddressBlock:
     def __init__(self, address: int, length: int):
         self._address = address
         self._length = length
@@ -40,6 +42,7 @@ class AddressBlock():
     @property
     def length(self) -> int:
         return self._length
+
 
 class ModbusDataCoordinator(DataUpdateCoordinator):
     def __init__(self, hass, host: str, port: int, update_interval: int):
@@ -87,22 +90,32 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
                 if self._write_cache.__len__() != 0:
                     (address, value) = self._write_cache.popitem()
                     try:
-                        result = await asyncio.to_thread(modbus_client.write_registers, address, value)
+                        result = await asyncio.to_thread(
+                            lambda: modbus_client.write_registers(address, [value])
+                        )
                         if result.isError():
                             self._data[address] = None
-                            self.logger.error(f"Error writing value '{value}' to register {address}.")
+                            self.logger.error(
+                                f"Error writing value '{value}' to register {address}."
+                            )
                         else:
                             self._data[address] = value
                             self._last_updated = dt.now()
                     except Exception as e:
                         self._data[address] = None
-                        self.logger.error(f"Error writing value '{value}' to register {address}.")
+                        self.logger.error(
+                            f"Error writing value '{value}' to register {address}."
+                        )
                 else:
                     address_block = self._next_address_block()
                     address = address_block.address
                     length = address_block.length
                     try:
-                        result = await asyncio.to_thread(modbus_client.read_holding_registers, address, length)
+                        result = await asyncio.to_thread(
+                            lambda: modbus_client.read_holding_registers(
+                                address, count=length
+                            )
+                        )
                         if result.isError():
                             self._data[address] = None
                             self.logger.error(f"Error reading register {address}.")
@@ -124,5 +137,7 @@ class ModbusDataCoordinator(DataUpdateCoordinator):
         return 1
 
     def _next_address_block(self) -> AddressBlock:
-        self._current_address_block_index = (self._current_address_block_index + 1) % self._address_blocks.__len__()
+        self._current_address_block_index = (
+            self._current_address_block_index + 1
+        ) % self._address_blocks.__len__()
         return self._address_blocks[self._current_address_block_index]
