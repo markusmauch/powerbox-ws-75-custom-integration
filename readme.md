@@ -42,6 +42,10 @@ host: IP address of your Maico Powerbox device
 port: Port (default is 80, change if necessary)
 unit_id: # The modbus unit id (10 is default)
 
+## Screenshots
+
+![Dashboard](images/dashboard.png)
+
 
 ## Support
 If you want to support my work feel free to
